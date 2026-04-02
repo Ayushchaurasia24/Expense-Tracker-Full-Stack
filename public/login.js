@@ -12,3 +12,4 @@ form.addEventListener("submit", async function (e) {
 
   alert("Login button clicked (API coming next)");
 });
+window.location.href = "expense.html";

@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const sequelize = require("./config/database");
 const userRoutes = require("./routes/userRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // routes
 app.use(userRoutes);
+app.use(expenseRoutes);
 
 // DB sync
 sequelize.sync()
