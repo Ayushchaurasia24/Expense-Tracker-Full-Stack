@@ -8,8 +8,13 @@
 <body>
 
   <div class="container">
+
+    <!-- Logout Button -->
+    <button id="logoutBtn">Logout</button>
+
     <h2>Daily Expenses</h2>
 
+    <!-- Form -->
     <form id="expenseForm">
       <input type="number" id="amount" placeholder="Amount" required />
       <input type="text" id="description" placeholder="Description" required />
@@ -24,7 +29,9 @@
       <button type="submit">Add Expense</button>
     </form>
 
+    <!-- Expense List -->
     <ul id="expenseList"></ul>
+
   </div>
 
   <script src="expense.js"></script>

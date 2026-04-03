@@ -4,6 +4,15 @@ const path = require("path");
 require("dotenv").config();
 
 const sequelize = require("./config/database");
+
+//Import models
+const User = require("./models/user");
+const Expense = require("./models/expense");
+
+//DEFINE ASSOCIATIONS HERE
+User.hasMany(Expense);
+Expense.belongsTo(User);
+
 const userRoutes = require("./routes/userRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 

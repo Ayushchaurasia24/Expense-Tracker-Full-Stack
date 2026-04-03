@@ -1,6 +1,25 @@
 const form = document.getElementById("expenseForm");
 const expenseList = document.getElementById("expenseList");
 
+// 🔐 Get token
+const token = localStorage.getItem("token");
+
+// 🚫 Protect page (IMPORTANT)
+if (!token) {
+  window.location.href = "login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+  });
+
+});
+
 // Add expense
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -12,14 +31,21 @@ form.addEventListener("submit", async (e) => {
   };
 
   const res = await fetch("http://localhost:3000/add-expense", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(expense)
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": token
+  },
+  body: JSON.stringify(expense)
   });
 
   const data = await res.json();
 
+  if (res.status === 201) {
   showExpense(data);
+  } else {
+  alert(data.message);
+  }
 });
 
 // Show on UI
@@ -28,17 +54,18 @@ function showExpense(exp) {
 
   li.textContent = `${exp.amount} - ${exp.description} - ${exp.category}`;
 
-  // Create delete button
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "Delete";
 
-  // IMPORTANT: Add click event
   deleteBtn.addEventListener("click", async () => {
     await fetch(`http://localhost:3000/delete-expense/${exp.id}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        "Authorization": token   // 🔥 ADD THIS
+      }
     });
 
-    li.remove(); // remove from UI
+    li.remove();
   });
 
   li.appendChild(deleteBtn);
@@ -47,8 +74,23 @@ function showExpense(exp) {
 
 // Load old expenses
 window.addEventListener("DOMContentLoaded", async () => {
-  const res = await fetch("http://localhost:3000/get-expenses");
+  const res = await fetch("http://localhost:3000/get-expenses", {
+    headers: {
+      "Authorization": token
+    }
+  });
+
   const data = await res.json();
 
-  data.forEach(showExpense);
+  console.log("Fetched data:", data); // 🔥 debug
+
+  if (res.status === 200) {   // ✅ FIXED
+    expenseList.innerHTML = ""; // clear old
+
+    data.forEach(exp => {
+      showExpense(exp);
+    });
+  } else {
+    alert(data.message);
+  }
 });

@@ -8,8 +8,31 @@ form.addEventListener("submit", async function (e) {
     password: document.getElementById("password").value
   };
 
-  console.log("Login Data:", userDetails);
+  try {
+    const res = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(userDetails)
+    });
 
-  alert("Login button clicked (API coming next)");
+    const data = await res.json();
+
+    if (res.status === 200) {
+      // ✅ Save token
+      localStorage.setItem("token", data.token);
+
+      alert("Login successful");
+
+      // ✅ Redirect AFTER success
+      window.location.href = "expense.html";
+    } else {
+      alert(data.message);
+    }
+
+  } catch (err) {
+    console.log(err);
+    alert("Something went wrong");
+  }
 });
-window.location.href = "expense.html";
