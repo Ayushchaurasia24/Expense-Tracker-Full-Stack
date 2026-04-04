@@ -1,24 +1,34 @@
 const jwt = require("jsonwebtoken");
+
 exports.authenticate = (req, res, next) => {
   try {
-    const token = req.header("Authorization");
+    const authHeader = req.header("Authorization");
 
-    console.log("TOKEN RECEIVED:", token); // 🔥 ADD
+    console.log("TOKEN RECEIVED:", authHeader);
 
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({ message: "Token missing" });
     }
 
-    const decoded = jwt.verify(token, "secretkey123");
+    // ✅ HANDLE BOTH CASES
+    let token;
 
-    console.log("DECODED:", decoded); // 🔥 ADD
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else {
+      token = authHeader;
+    }
+
+    console.log("EXTRACTED TOKEN:", token);
+
+    const decoded = jwt.verify(token, "secretkey123");
 
     req.userId = decoded.userId;
 
     next();
 
   } catch (err) {
-    console.log("AUTH ERROR:", err.message); // 🔥 ADD
+    console.log("AUTH ERROR:", err.message);
     res.status(401).json({ message: "Unauthorized" });
   }
 };

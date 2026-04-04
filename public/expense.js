@@ -4,23 +4,22 @@ const expenseList = document.getElementById("expenseList");
 // 🔐 Get token
 const token = localStorage.getItem("token");
 
-// 🚫 Protect page (IMPORTANT)
+// 🚫 Protect page
 if (!token) {
   window.location.href = "login.html";
 }
 
+// Logout
 document.addEventListener("DOMContentLoaded", () => {
-
   const logoutBtn = document.getElementById("logoutBtn");
 
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "login.html";
   });
-
 });
 
-// Add expense
+// ================== ADD EXPENSE ==================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -31,24 +30,24 @@ form.addEventListener("submit", async (e) => {
   };
 
   const res = await fetch("http://localhost:3000/add-expense", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": token
-  },
-  body: JSON.stringify(expense)
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`   // ✅ FIXED
+    },
+    body: JSON.stringify(expense)
   });
 
   const data = await res.json();
 
   if (res.status === 201) {
-  showExpense(data);
+    showExpense(data);
   } else {
-  alert(data.message);
+    alert(data.message);
   }
 });
 
-// Show on UI
+// ================== SHOW EXPENSE ==================
 function showExpense(exp) {
   const li = document.createElement("li");
 
@@ -61,7 +60,7 @@ function showExpense(exp) {
     await fetch(`http://localhost:3000/delete-expense/${exp.id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": token   // 🔥 ADD THIS
+        "Authorization": `Bearer ${token}`   // ✅ FIXED
       }
     });
 
@@ -72,20 +71,20 @@ function showExpense(exp) {
   expenseList.appendChild(li);
 }
 
-// Load old expenses
+// ================== LOAD EXPENSES ==================
 window.addEventListener("DOMContentLoaded", async () => {
   const res = await fetch("http://localhost:3000/get-expenses", {
     headers: {
-      "Authorization": token
+      "Authorization": `Bearer ${token}`   // ✅ FIXED
     }
   });
 
   const data = await res.json();
 
-  console.log("Fetched data:", data); // 🔥 debug
+  console.log("Fetched data:", data);
 
-  if (res.status === 200) {   // ✅ FIXED
-    expenseList.innerHTML = ""; // clear old
+  if (res.status === 200) {
+    expenseList.innerHTML = "";
 
     data.forEach(exp => {
       showExpense(exp);
@@ -93,4 +92,57 @@ window.addEventListener("DOMContentLoaded", async () => {
   } else {
     alert(data.message);
   }
+});
+
+// ================== PREMIUM ==================
+document.addEventListener("DOMContentLoaded", () => {
+
+  const premiumBtn = document.getElementById("buyPremiumBtn");
+
+  premiumBtn.addEventListener("click", async () => {
+    try {
+      // 🔹 Step 1: Create Order
+      const res = await fetch("http://localhost:3000/pay", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`   // ✅ FIXED
+        }
+      });
+
+      const data = await res.json();
+      const orderId = data.orderId;
+
+      alert("Payment Started: " + orderId);
+
+      // 🔹 Step 2: Simulate Payment Popup
+      const isSuccess = confirm("Simulate Payment?\nOK = Success\nCancel = Failed");
+
+      // 🔹 Step 3: Check Status
+      const statusRes = await fetch(
+        `http://localhost:3000/payment-status/${orderId}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`   // ✅ FIXED
+          }
+        }
+      );
+
+      const statusData = await statusRes.json();
+
+      if (statusData.status === "SUCCESSFUL") {
+        alert("🎉 Transaction successful! You are now Premium");
+
+        // 🔥 UI update
+        premiumBtn.innerText = "Premium User";
+        premiumBtn.disabled = true;
+      } else {
+        alert("❌ Transaction failed");
+      }
+
+    } catch (err) {
+      console.log(err);
+      alert("Something went wrong");
+    }
+  });
+
 });
