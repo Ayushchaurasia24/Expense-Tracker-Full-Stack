@@ -1,21 +1,38 @@
+const Sequelize = require("sequelize");
 const Expense = require("../models/expense");
 const User = require("../models/user");
 
+// ================== LEADERBOARD (OPTIMIZED) ==================
 exports.getLeaderboard = async (req, res) => {
   try {
-    const users = await User.findAll({
-      attributes: ["name", "totalExpense"],
-      order: [["totalExpense", "DESC"]]
+    const leaderboard = await User.findAll({
+      attributes: [
+        "id",
+        "name",
+        [
+          Sequelize.fn("SUM", Sequelize.col("Expenses.amount")),
+          "totalExpense"
+        ]
+      ],
+      include: [
+        {
+          model: Expense,
+          attributes: []
+        }
+      ],
+      group: ["User.id"],
+      order: [[Sequelize.literal("totalExpense"), "DESC"]]
     });
 
-    res.json(users);
+    res.json(leaderboard);
 
   } catch (err) {
-    console.log(err);
+    console.log("LEADERBOARD ERROR:", err);
     res.status(500).json({ message: "Error fetching leaderboard" });
   }
 };
 
+// ================== ADD EXPENSE ==================
 exports.addExpense = async (req, res) => {
   try {
     const { amount, description, category } = req.body;
@@ -27,23 +44,17 @@ exports.addExpense = async (req, res) => {
       UserId: req.userId
     });
 
-    // 🔥 IMPORTANT: Update totalExpense
-    const user = await User.findByPk(req.userId);
-    user.totalExpense += Number(amount);
-    await user.save();
-
     res.status(201).json(expense);
 
   } catch (err) {
-    console.log(err);
+    console.log("ADD ERROR:", err);
     res.status(500).json({ message: "Error adding expense" });
   }
 };
 
+// ================== GET EXPENSES ==================
 exports.getExpenses = async (req, res) => {
   try {
-    console.log("USER ID:", req.userId); // ✅ ONLY HERE
-
     const expenses = await Expense.findAll({
       where: { UserId: req.userId }
     });
@@ -56,6 +67,7 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
+// ================== DELETE EXPENSE ==================
 exports.deleteExpense = async (req, res) => {
   try {
     const id = req.params.id;
@@ -68,17 +80,12 @@ exports.deleteExpense = async (req, res) => {
       return res.status(404).json({ message: "Not allowed" });
     }
 
-    // 🔥 subtract from totalExpense
-    const user = await User.findByPk(req.userId);
-    user.totalExpense -= Number(expense.amount);
-    await user.save();
-
     await expense.destroy();
 
     res.status(200).json({ message: "Deleted successfully" });
 
   } catch (err) {
-    console.log(err);
+    console.log("DELETE ERROR:", err);
     res.status(500).json({ message: "Error deleting expense" });
   }
 };
