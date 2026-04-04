@@ -37,7 +37,7 @@ app.use(expenseRoutes);
 console.log("APP_ID:", process.env.CASHFREE_APP_ID);
 console.log("SECRET:", process.env.CASHFREE_SECRET_KEY);
 // DB sync
-sequelize.sync({ alter: true })
+sequelize.sync()
   .then(() => {
     app.listen(process.env.PORT, () => {
       console.log("Server running");

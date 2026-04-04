@@ -31,15 +31,20 @@ exports.getLeaderboard = async (req, res) => {
     res.status(500).json({ message: "Error fetching leaderboard" });
   }
 };
+const { getCategoryFromAI } = require("../services/aiService");
+
 // ================== ADD EXPENSE ==================
 exports.addExpense = async (req, res) => {
   try {
-    const { amount, description, category } = req.body;
+    const { amount, description } = req.body;
+
+    // 🧠 Get category from AI
+    const aiCategory = await getCategoryFromAI(description);
 
     const expense = await Expense.create({
       amount,
       description,
-      category,
+      category: aiCategory,
       UserId: req.userId
     });
 
@@ -50,7 +55,6 @@ exports.addExpense = async (req, res) => {
     res.status(500).json({ message: "Error adding expense" });
   }
 };
-
 // ================== GET EXPENSES ==================
 exports.getExpenses = async (req, res) => {
   try {
