@@ -8,12 +8,20 @@
 <body>
 
   <div class="container">
+
+    <!-- 🔥 PREMIUM MESSAGE -->
+    <h3 id="premiumMsg" style="color: green;"></h3>
+
+    <!-- 🔥 BUY PREMIUM BUTTON -->
     <button id="buyPremiumBtn">Buy Premium</button>
-    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+    <!-- 🔥 LEADERBOARD -->
+    <h3 id="leaderboardTitle" style="display:none;">🏆 Leaderboard</h3>
+    <ul id="leaderboard"></ul>
 
     <h2>Daily Expenses</h2>
 
-    <!-- Form -->
+    <!-- 🔹 FORM -->
     <form id="expenseForm">
       <input type="number" id="amount" placeholder="Amount" required />
       <input type="text" id="description" placeholder="Description" required />
@@ -28,12 +36,16 @@
       <button type="submit">Add Expense</button>
     </form>
 
-    <!-- Expense List -->
+    <!-- 🔹 EXPENSE LIST -->
     <ul id="expenseList"></ul>
+
+    <!-- 🔹 LOGOUT -->
     <button id="logoutBtn">Logout</button>
 
   </div>
 
+  <!-- 🔥 JS -->
   <script src="expense.js"></script>
+
 </body>
 </html>

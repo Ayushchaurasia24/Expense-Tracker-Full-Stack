@@ -24,6 +24,7 @@ exports.authenticate = (req, res, next) => {
     const decoded = jwt.verify(token, "secretkey123");
 
     req.userId = decoded.userId;
+    req.isPremium = decoded.isPremium; // 🔥 ADD
 
     next();
 

@@ -1,15 +1,8 @@
 const Order = require("../models/order");
 const User = require("../models/user");
-const { createOrder } = require("../services/cashfreeService");
-const { Cashfree, CFEnvironment } = require("cashfree-pg");
+const jwt = require("jsonwebtoken");
 
-const cashfree = new Cashfree(
-  CFEnvironment.SANDBOX,
-  process.env.CASHFREE_APP_ID,
-  process.env.CASHFREE_SECRET_KEY
-);
-
-//Create Order
+// Create Order
 exports.pay = async (req, res) => {
   try {
     const orderId = "ORDER_" + Date.now();
@@ -28,7 +21,7 @@ exports.pay = async (req, res) => {
   }
 };
 
-//Check Status
+// Check Status
 exports.getPaymentStatus = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -51,7 +44,13 @@ exports.getPaymentStatus = async (req, res) => {
     user.isPremium = true;
     await user.save();
 
-    res.json({ status: "SUCCESSFUL" });
+    // 🔥 NEW TOKEN WITH UPDATED PREMIUM STATUS
+    const token = jwt.sign(
+      { userId: user.id, isPremium: true },
+      "secretkey123"
+    );
+
+    res.json({ status: "SUCCESSFUL", token });
 
   } catch (err) {
     console.log("STATUS ERROR:", err);

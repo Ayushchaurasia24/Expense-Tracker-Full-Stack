@@ -48,8 +48,8 @@ exports.login = async (req, res) => {
 
   // Generate token
   const token = jwt.sign(
-    { userId: user.id },
-    "secretkey123"
+  { userId: user.id, isPremium: user.isPremium },
+  "secretkey123"
   );
 
   res.status(200).json({ message: "Login successful", token });
