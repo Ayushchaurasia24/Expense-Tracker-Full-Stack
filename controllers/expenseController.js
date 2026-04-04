@@ -10,7 +10,7 @@ exports.getLeaderboard = async (req, res) => {
         "id",
         "name",
         [
-          Sequelize.fn("SUM", Sequelize.col("Expenses.amount")),
+          Sequelize.fn("SUM", Sequelize.col("expenses.amount")),
           "totalExpense"
         ]
       ],
@@ -31,7 +31,6 @@ exports.getLeaderboard = async (req, res) => {
     res.status(500).json({ message: "Error fetching leaderboard" });
   }
 };
-
 // ================== ADD EXPENSE ==================
 exports.addExpense = async (req, res) => {
   try {
