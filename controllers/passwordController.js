@@ -83,7 +83,7 @@ exports.resetPassword = async (req, res) => {
     `);
 
   } catch (err) {
-    console.log(err);
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
     res.status(500).send("Error loading page");
   }
 };

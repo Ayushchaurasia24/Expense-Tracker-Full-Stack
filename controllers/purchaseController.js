@@ -1,3 +1,4 @@
+const fs = require("fs");
 const Order = require("../models/order");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
@@ -16,7 +17,7 @@ exports.pay = async (req, res) => {
     res.json({ orderId });
 
   } catch (err) {
-    console.log(err);
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
     res.status(500).json({ message: "Payment error" });
   }
 };
@@ -47,13 +48,13 @@ exports.getPaymentStatus = async (req, res) => {
     // 🔥 NEW TOKEN WITH UPDATED PREMIUM STATUS
     const token = jwt.sign(
       { userId: user.id, isPremium: true },
-      "secretkey123"
+      process.env.JWT_SECRET
     );
 
     res.json({ status: "SUCCESSFUL", token });
 
   } catch (err) {
-    console.log("STATUS ERROR:", err);
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
     res.status(500).json({ message: "Status error" });
   }
 };

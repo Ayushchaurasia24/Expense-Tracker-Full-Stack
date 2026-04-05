@@ -86,7 +86,7 @@ exports.getExpenses = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
     res.status(500).json({ message: "Error fetching expenses" });
   }
 };

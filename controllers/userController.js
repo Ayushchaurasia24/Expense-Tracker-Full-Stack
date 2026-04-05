@@ -26,7 +26,7 @@ exports.signup = async (req, res) => {
     res.status(201).json({ message: "User registered successfully" });
 
   } catch (error) {
-    console.log(error);
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -47,10 +47,7 @@ exports.login = async (req, res) => {
   }
 
   // Generate token
-  const token = jwt.sign(
-  { userId: user.id, isPremium: user.isPremium },
-  "secretkey123"
-  );
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
 
   res.status(200).json({ message: "Login successful", token });
 };

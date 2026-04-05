@@ -1,3 +1,4 @@
+const BASE_URL = "http://localhost:3000"; // change later to EC2
 // ================= TOAST =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -46,8 +47,7 @@ function updateStats(expenses) {
 // ================= LOAD EXPENSES =================
 async function loadExpenses(page = 1) {
   try {
-    const res = await fetch(
-      `http://localhost:3000/get-expenses?page=${page}&limit=${limit}`,
+    const res = await fetch(`${BASE_URL}/get-expenses?page=${page}&limit=${limit}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -117,7 +117,7 @@ function renderExpenses(expenses) {
     delBtn.addEventListener("click", async () => {
       delBtn.disabled = true;
       delBtn.textContent = "…";
-      await fetch(`http://localhost:3000/delete-expense/${exp.id}`, {
+      await fetch(`${BASE_URL}/delete-expense/${exp.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     lbSection.classList.add("show");
 
     try {
-      const res = await fetch("http://localhost:3000/leaderboard", {
+      const res = await fetch(`${BASE_URL}/leaderboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -183,14 +183,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("buyPremiumBtn").addEventListener("click", async () => {
     if (user.isPremium) return;
     try {
-      const res = await fetch("http://localhost:3000/pay", {
+      const res = await fetch(`${BASE_URL}/pay`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
 
       const statusRes = await fetch(
-        `http://localhost:3000/payment-status/${data.orderId}`,
+        `${BASE_URL}/payment-status/${data.orderId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const statusData = await statusRes.json();
@@ -226,7 +226,7 @@ form.addEventListener("submit", async (e) => {
   addBtn.classList.add("btn-loading");
   addBtn.disabled = true;
 
-  const res = await fetch("http://localhost:3000/add-expense", {
+  const res = await fetch(`${BASE_URL}/add-expense`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

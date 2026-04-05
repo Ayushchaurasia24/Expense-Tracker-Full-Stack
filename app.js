@@ -1,20 +1,37 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config();
+const morgan = require("morgan");
+const fs = require("fs");
 
+const app = express(); // ✅ MUST COME BEFORE app.use()
 
+// ================= LOGGING =================
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" }
+);
+
+app.use(morgan("combined", { stream: accessLogStream }));
+
+// ================= DATABASE =================
 const sequelize = require("./config/database");
-const ForgotPassword = require("./models/forgotPassword");
 
-//Import models
+// ================= MODELS =================
 const User = require("./models/user");
 const Expense = require("./models/expense");
 const Order = require("./models/order");
+const ForgotPassword = require("./models/forgotPassword");
+
+// ================= ROUTES =================
+const purchaseRoutes = require("./routes/purchaseRoutes");
+const userRoutes = require("./routes/userRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 
-
-//DEFINE ASSOCIATIONS HERE
+// ================= ASSOCIATIONS =================
 User.hasMany(Expense);
 Expense.belongsTo(User);
 
@@ -24,32 +41,28 @@ Order.belongsTo(User);
 User.hasMany(ForgotPassword);
 ForgotPassword.belongsTo(User);
 
-const purchaseRoutes = require("./routes/purchaseRoutes");
-const userRoutes = require("./routes/userRoutes");
-const expenseRoutes = require("./routes/expenseRoutes");
-
-const app = express();
-
+// ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// frontend
+// ================= STATIC =================
 app.use(express.static(path.join(__dirname, "public")));
 
-// routes
+// ================= ROUTES =================
 app.use(purchaseRoutes);
 app.use(userRoutes);
 app.use(expenseRoutes);
 app.use(passwordRoutes);
 
-console.log("APP_ID:", process.env.CASHFREE_APP_ID);
-console.log("SECRET:", process.env.CASHFREE_SECRET_KEY);
-// DB sync
+
+// ================= START SERVER =================
 sequelize.sync()
   .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log("Server running");
+    app.listen(process.env.PORT || 3000, () => {
+      console.log(`Server running on port ${process.env.PORT}`);
     });
   })
-  .catch(err => console.log(err));
+  .catch(err => {
+    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
+  });
