@@ -39,13 +39,14 @@ exports.addExpense = async (req, res) => {
   const t = await sequelize.transaction();
 
   try {
-    const { amount, description } = req.body;
+    const { amount, description, note } = req.body;
 
     const aiCategory = await getCategoryFromAI(description);
 
     const expense = await Expense.create({
       amount,
       description,
+      note,
       category: aiCategory,
       UserId: req.userId
     }, { transaction: t });

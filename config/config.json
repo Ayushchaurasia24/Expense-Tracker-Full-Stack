@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "root",
+    "password": "Ayush@123",
+    "database": "expense_tracker",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "Ayush@123",
+    "database": "expense_tracker",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "Ayush@123",
+    "database": "expense_tracker",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}

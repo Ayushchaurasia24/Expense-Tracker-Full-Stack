@@ -138,7 +138,8 @@ form.addEventListener("submit", async (e) => {
   const expense = {
     amount: document.getElementById("amount").value,
     description: document.getElementById("description").value,
-    category: document.getElementById("category").value
+    category: document.getElementById("category").value,
+    note: document.getElementById("note").value
   };
 
   const res = await fetch("http://localhost:3000/add-expense", {

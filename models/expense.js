@@ -9,7 +9,10 @@ const Expense = sequelize.define("Expense", {
   },
   amount: Sequelize.FLOAT,
   description: Sequelize.STRING,
-  category: Sequelize.STRING
+  category: Sequelize.STRING,
+  note: {
+  type: Sequelize.STRING
+  }
 });
 
 module.exports = Expense;
