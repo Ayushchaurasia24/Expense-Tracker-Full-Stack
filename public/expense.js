@@ -160,7 +160,10 @@ form.addEventListener("submit", async (e) => {
 function showExpense(exp) {
   const li = document.createElement("li");
 
-  li.textContent = `${exp.amount} - ${exp.description} - ${exp.category}`;
+  li.innerHTML = `
+  <strong>₹${exp.amount}</strong> - ${exp.description} <br/>
+  📝 ${exp.note || "No note"} | 📂 ${exp.category}
+  `;
 
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "Delete";
