@@ -2,38 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
-  <link rel="stylesheet" href="login.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Expense Tracker</title>
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .auth-wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--green), #1ab88a);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px var(--green-glow);
+    }
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .brand p { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+
+    .card { padding: 32px; }
+    .card-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.02em; }
+    .card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 26px; }
+
+    .input-icon { position: relative; }
+    .input-icon .icon {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted); font-size: 15px; pointer-events: none;
+    }
+    .input-icon input { padding-left: 38px !important; }
+
+    .forgot-inline {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -8px;
+      margin-bottom: 6px;
+    }
+    .forgot-inline button {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font); font-size: 12px;
+      color: var(--text-muted); padding: 0;
+      transition: color 0.15s;
+    }
+    .forgot-inline button:hover { color: var(--green); }
+
+    .forgot-panel {
+      display: none;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-top: 16px;
+    }
+    .forgot-panel h4 {
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 12px; color: var(--text-sub);
+    }
+
+    .footer-link { text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-muted); }
+
+    .btn-loading .btn-text { display: none; }
+    .btn-loading .spinner { display: block; }
+    .spinner { display: none; }
+  </style>
 </head>
 <body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
 
-  <div class="login-container">
-    <h2>Login</h2>
+  <div class="auth-wrap">
+    <div class="brand">
+      <div class="brand-icon">💸</div>
+      <h1>Expense Tracker</h1>
+      <p>Smart money management</p>
+    </div>
 
-    <!-- LOGIN FORM -->
-    <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email Address" required />
-      <input type="password" id="loginPassword" placeholder="Password" required />
+    <div class="card">
+      <div class="card-title">Welcome back</div>
+      <div class="card-sub">Sign in to your account.</div>
 
-      <button type="submit">Login</button>
-    </form>
+      <!-- LOGIN FORM -->
+      <form id="loginForm" autocomplete="off">
+        <div class="field">
+          <label>Email Address</label>
+          <div class="input-icon">
+            <span class="icon">✉️</span>
+            <input type="email" id="loginEmail" placeholder="you@example.com" required />
+          </div>
+        </div>
 
-    <p class="signup-link">
-      New user? <a href="signup.html">Sign up</a>
-    </p>
+        <div class="field">
+          <label>Password</label>
+          <div class="input-icon">
+            <span class="icon">🔒</span>
+            <input type="password" id="loginPassword" placeholder="Your password" required />
+          </div>
+        </div>
 
-    <!-- FORGOT PASSWORD BUTTON -->
-    <button onclick="showForgotForm()">Forgot Password?</button>
+        <div class="forgot-inline">
+          <button type="button" onclick="toggleForgot()">Forgot password?</button>
+        </div>
 
-    <!-- FORGOT PASSWORD FORM -->
-    <form id="forgotForm" style="display:none;">
-      <input type="email" id="forgotEmail" placeholder="Enter your email" required />
-      <button type="submit">Send Reset Link</button>
-    </form>
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <div class="spinner"></div>
+        </button>
+      </form>
+
+      <!-- FORGOT PASSWORD PANEL -->
+      <div class="forgot-panel" id="forgotPanel">
+        <h4>Reset your password</h4>
+        <form id="forgotForm">
+          <div class="field">
+            <div class="input-icon">
+              <span class="icon">✉️</span>
+              <input type="email" id="forgotEmail" placeholder="Enter your email" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-ghost btn-full" id="forgotBtn">
+            <span class="btn-text">Send Reset Link</span>
+            <div class="spinner"></div>
+          </button>
+        </form>
+      </div>
+
+      <div class="divider">or</div>
+
+      <div class="footer-link">
+        Don't have an account? <a href="signup.html">Sign up</a>
+      </div>
+    </div>
   </div>
+
+  <div id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="login.js"></script>
-
 </body>
 </html>
