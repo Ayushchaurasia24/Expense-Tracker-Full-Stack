@@ -60,14 +60,29 @@ exports.addExpense = async (req, res) => {
     res.status(500).json({ message: "Error adding expense" });
   }
 };
-// ================== GET EXPENSES ==================
+
+// ================== GET EXPENSES (PAGINATION) ==================
 exports.getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.findAll({
-      where: { UserId: req.userId }
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Expense.findAndCountAll({
+      where: { UserId: req.userId },
+      limit: limit,
+      offset: offset,
+      order: [["createdAt", "DESC"]]
     });
 
-    res.json(expenses);
+    res.json({
+      expenses: rows,
+      currentPage: page,
+      hasNextPage: limit * page < count,
+      hasPreviousPage: page > 1,
+      lastPage: Math.ceil(count / limit)
+    });
 
   } catch (err) {
     console.log("GET ERROR:", err);
