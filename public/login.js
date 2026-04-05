@@ -1,11 +1,12 @@
-const form = document.getElementById("loginForm");
+// ================= LOGIN =================
+const loginForm = document.getElementById("loginForm");
 
-form.addEventListener("submit", async function (e) {
+loginForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const userDetails = {
-    email: document.getElementById("email").value,
-    password: document.getElementById("password").value
+    email: document.getElementById("loginEmail").value,
+    password: document.getElementById("loginPassword").value
   };
 
   try {
@@ -20,12 +21,9 @@ form.addEventListener("submit", async function (e) {
     const data = await res.json();
 
     if (res.status === 200) {
-      // ✅ Save token
       localStorage.setItem("token", data.token);
 
       alert("Login successful");
-
-      // ✅ Redirect AFTER success
       window.location.href = "expense.html";
     } else {
       alert(data.message);
@@ -34,5 +32,34 @@ form.addEventListener("submit", async function (e) {
   } catch (err) {
     console.log(err);
     alert("Something went wrong");
+  }
+});
+
+
+// ================= SHOW FORGOT FORM =================
+function showForgotForm() {
+  document.getElementById("forgotForm").style.display = "block";
+}
+
+
+// ================= FORGOT PASSWORD =================
+const forgotForm = document.getElementById("forgotForm");
+
+forgotForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("forgotEmail").value;
+
+  try {
+    const res = await axios.post(
+      "http://localhost:3000/password/forgotpassword",
+      { email }
+    );
+
+    alert(res.data.message);
+
+  } catch (err) {
+    console.log(err);
+    alert("Error sending email");
   }
 });
