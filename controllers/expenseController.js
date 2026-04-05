@@ -65,27 +65,27 @@ exports.addExpense = async (req, res) => {
 exports.getExpenses = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = parseInt(req.query.limit) || 10; // 🔥 dynamic
 
     const offset = (page - 1) * limit;
 
     const { count, rows } = await Expense.findAndCountAll({
       where: { UserId: req.userId },
-      limit: limit,
-      offset: offset,
+      limit,
+      offset,
       order: [["createdAt", "DESC"]]
     });
 
     res.json({
       expenses: rows,
       currentPage: page,
-      hasNextPage: limit * page < count,
+      hasNextPage: page * limit < count,
       hasPreviousPage: page > 1,
       lastPage: Math.ceil(count / limit)
     });
 
   } catch (err) {
-    console.log("GET ERROR:", err);
+    console.log(err);
     res.status(500).json({ message: "Error fetching expenses" });
   }
 };

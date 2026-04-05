@@ -13,13 +13,15 @@ const decodeToken = (token) => {
 
 const user = decodeToken(token);
 
+// 🔥 PAGINATION STATE
 let currentPage = 1;
+let limit = localStorage.getItem("limit") || 10;
 
 // ================= LOAD EXPENSES =================
 async function loadExpenses(page = 1) {
   try {
     const res = await fetch(
-      `http://localhost:3000/get-expenses?page=${page}`,
+      `http://localhost:3000/get-expenses?page=${page}&limit=${limit}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -52,6 +54,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const logoutBtn = document.getElementById("logoutBtn");
   const premiumBtn = document.getElementById("buyPremiumBtn");
+  const limitSelect = document.getElementById("limitSelect");
+
+  // 🔥 Set saved limit
+  limitSelect.value = limit;
 
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
@@ -84,8 +90,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // 🔥 Load initial expenses
   loadExpenses();
 
+  // 🔥 LIMIT CHANGE (Dynamic Pagination)
+  limitSelect.addEventListener("change", (e) => {
+    limit = e.target.value;
+    localStorage.setItem("limit", limit);
+
+    loadExpenses(1); // reset to first page
+  });
+
+  // 🔹 Premium purchase
   premiumBtn.addEventListener("click", async () => {
     try {
       const res = await fetch("http://localhost:3000/pay", {
@@ -134,10 +150,8 @@ form.addEventListener("submit", async (e) => {
     body: JSON.stringify(expense)
   });
 
-  const data = await res.json();
-
   if (res.status === 201) {
-    loadExpenses(currentPage); // 🔥 reload current page
+    loadExpenses(currentPage); // 🔥 refresh current page
   }
 });
 
@@ -156,7 +170,8 @@ function showExpense(exp) {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    loadExpenses(currentPage); // 🔥 reload after delete
+    // 🔥 HANDLE EDGE CASE (empty page)
+    loadExpenses(currentPage);
   });
 
   li.appendChild(deleteBtn);

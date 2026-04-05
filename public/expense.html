@@ -22,6 +22,16 @@
 
     <h2>Daily Expenses</h2>
 
+    <!-- 🔥 LIMIT SELECT -->
+    <label>Expenses per page:</label>
+    <select id="limitSelect">
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+      <option value="40">40</option>
+    </select>
+
+    <!-- 🔹 FORM -->
     <form id="expenseForm">
       <input type="number" id="amount" placeholder="Amount" required />
       <input type="text" id="description" placeholder="Description" required />
@@ -36,15 +46,17 @@
       <button type="submit">Add Expense</button>
     </form>
 
+    <!-- 🔹 EXPENSE LIST -->
     <ul id="expenseList"></ul>
 
     <!-- 🔥 PAGINATION -->
-    <div id="pagination">
+    <div id="pagination" style="margin-top: 10px;">
       <button id="prevBtn">Previous</button>
       <span id="pageInfo"></span>
       <button id="nextBtn">Next</button>
     </div>
 
+    <!-- 🔹 LOGOUT -->
     <button id="logoutBtn">Logout</button>
 
   </div>
