@@ -26,7 +26,7 @@ exports.signup = async (req, res) => {
     res.status(201).json({ message: "User registered successfully" });
 
   } catch (error) {
-    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
+    fs.appendFileSync("error.log", `${new Date()} - ${error.message}\n`);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -46,8 +46,14 @@ exports.login = async (req, res) => {
     return res.status(401).json({ message: "User not authorized" });
   }
 
-  // Generate token
-  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
+  // ✅ FIXED TOKEN (VERY IMPORTANT)
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      isPremium: user.isPremium   // 🔥 ADD THIS
+    },
+    process.env.JWT_SECRET
+  );
 
   res.status(200).json({ message: "Login successful", token });
 };

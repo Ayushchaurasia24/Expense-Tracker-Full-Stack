@@ -8,4 +8,11 @@ router.post("/add-expense", auth.authenticate, expenseController.addExpense);
 router.get("/get-expenses", auth.authenticate, expenseController.getExpenses);
 router.delete("/delete-expense/:id", auth.authenticate, expenseController.deleteExpense);
 router.get("/leaderboard", auth.authenticate, expenseController.getLeaderboard);
+
+// ✅ DOWNLOAD FILE (S3)
+router.get("/download", auth.authenticate, expenseController.downloadExpenses);
+
+// ✅ DOWNLOAD HISTORY (ADD THIS HERE)
+router.get("/download-history", auth.authenticate, expenseController.getDownloadHistory);
+
 module.exports = router;

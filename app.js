@@ -24,6 +24,7 @@ const User = require("./models/user");
 const Expense = require("./models/expense");
 const Order = require("./models/order");
 const ForgotPassword = require("./models/forgotPassword");
+const DownloadedFile = require("./models/downloadedFile");
 
 // ================= ROUTES =================
 const purchaseRoutes = require("./routes/purchaseRoutes");
@@ -40,6 +41,9 @@ Order.belongsTo(User);
 
 User.hasMany(ForgotPassword);
 ForgotPassword.belongsTo(User);
+
+User.hasMany(DownloadedFile);
+DownloadedFile.belongsTo(User);
 
 // ================= MIDDLEWARE =================
 app.use(cors());

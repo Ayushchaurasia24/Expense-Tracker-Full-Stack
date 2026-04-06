@@ -1,4 +1,5 @@
 const BASE_URL = "http://localhost:3000"; // change later to EC2
+
 // ================= TOAST =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -47,9 +48,9 @@ function updateStats(expenses) {
 // ================= LOAD EXPENSES =================
 async function loadExpenses(page = 1) {
   try {
-    const res = await fetch(`${BASE_URL}/get-expenses?page=${page}&limit=${limit}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const res = await fetch(`${BASE_URL}/get-expenses?page=${page}&limit=${limit}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
     const data = await res.json();
 
@@ -110,17 +111,20 @@ function renderExpenses(expenses) {
       </div>
     `;
 
-    // Delete button
+    // DELETE BUTTON
     const delBtn = document.createElement("button");
     delBtn.className = "btn btn-danger btn-sm";
     delBtn.textContent = "Delete";
+
     delBtn.addEventListener("click", async () => {
       delBtn.disabled = true;
       delBtn.textContent = "…";
+
       await fetch(`${BASE_URL}/delete-expense/${exp.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
+
       toast("Expense deleted", "info");
       loadExpenses(currentPage);
     });
@@ -133,13 +137,13 @@ function renderExpenses(expenses) {
 // ================= DOM READY =================
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // Logout
+  // LOGOUT
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "login.html";
   });
 
-  // Limit select
+  // LIMIT SELECT
   const limitSelect = document.getElementById("limitSelect");
   limitSelect.value = limit;
   limitSelect.addEventListener("change", (e) => {
@@ -148,14 +152,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadExpenses(1);
   });
 
-  // Premium UI
+  // ================= PREMIUM UI =================
   if (user.isPremium) {
     document.getElementById("premiumBanner").classList.add("show");
+
     const premBtn = document.getElementById("buyPremiumBtn");
     premBtn.textContent = "🌟 Premium";
     premBtn.disabled = true;
 
-    // Leaderboard
+    // SHOW LEADERBOARD
     const lbSection = document.getElementById("leaderboardSection");
     lbSection.classList.add("show");
 
@@ -163,36 +168,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       const res = await fetch(`${BASE_URL}/leaderboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
       const data = await res.json();
       const lbList = document.getElementById("leaderboardList");
       lbList.innerHTML = "";
+
       data.forEach((u, i) => {
         const div = document.createElement("div");
         div.className = "lb-item";
+
         div.innerHTML = `
           <span class="lb-rank">${i + 1}</span>
           <span class="lb-name">${u.name}</span>
           <span class="lb-amt">₹${Number(u.totalExpense).toLocaleString()}</span>
         `;
+
         lbList.appendChild(div);
       });
-    } catch (e) { console.error(e); }
+
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  // Premium buy
+  // ================= BUY PREMIUM =================
   document.getElementById("buyPremiumBtn").addEventListener("click", async () => {
     if (user.isPremium) return;
+
     try {
       const res = await fetch(`${BASE_URL}/pay`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
+
       const data = await res.json();
 
       const statusRes = await fetch(
         `${BASE_URL}/payment-status/${data.orderId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       const statusData = await statusRes.json();
 
       if (statusData.status === "SUCCESSFUL") {
@@ -200,27 +215,64 @@ document.addEventListener("DOMContentLoaded", async () => {
         toast("Upgraded to Premium! 🎉", "success");
         setTimeout(() => location.reload(), 1200);
       }
+
     } catch (err) {
       console.error(err);
       toast("Payment error", "error");
     }
   });
 
+  // ================= DOWNLOAD FEATURE =================
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/download`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+          toast("Only Premium users can download", "error");
+          return;
+        }
+
+        const data = await res.json();
+
+        if (data.fileURL) {
+          const a = document.createElement("a");
+          a.href = data.fileURL;
+          a.download = "expenses.txt";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          toast("Download started 📥", "success");
+        }
+
+      } catch (err) {
+        console.error(err);
+        toast("Download failed", "error");
+      }
+    });
+  }
+
+  // LOAD EXPENSES
   loadExpenses();
 });
 
 // ================= ADD EXPENSE =================
-const form  = document.getElementById("expenseForm");
+const form = document.getElementById("expenseForm");
 const addBtn = document.getElementById("addBtn");
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const expense = {
-    amount:      document.getElementById("amount").value,
+    amount: document.getElementById("amount").value,
     description: document.getElementById("description").value.trim(),
-    category:    document.getElementById("category").value,
-    note:        document.getElementById("note").value.trim()
+    category: document.getElementById("category").value,
+    note: document.getElementById("note").value.trim()
   };
 
   addBtn.classList.add("btn-loading");

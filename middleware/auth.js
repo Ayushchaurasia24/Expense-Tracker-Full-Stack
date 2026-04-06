@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user"); // ✅ ADD THIS
 
-exports.authenticate = (req, res, next) => {
+exports.authenticate = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
 
@@ -10,7 +11,6 @@ exports.authenticate = (req, res, next) => {
       return res.status(401).json({ message: "Token missing" });
     }
 
-    // ✅ HANDLE BOTH CASES
     let token;
 
     if (authHeader.startsWith("Bearer ")) {
@@ -21,10 +21,17 @@ exports.authenticate = (req, res, next) => {
 
     console.log("EXTRACTED TOKEN:", token);
 
-    const decoded = jwt.verify(token, "secretkey123");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.userId = decoded.userId;
-    req.isPremium = decoded.isPremium; // 🔥 ADD
+    // ✅ FETCH USER FROM DB
+    const user = await User.findByPk(decoded.userId);
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // ✅ ATTACH FULL USER OBJECT
+    req.user = user;
 
     next();
 

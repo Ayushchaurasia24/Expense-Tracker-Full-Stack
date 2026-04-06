@@ -2,8 +2,17 @@ const Sequelize = require("sequelize");
 const Expense = require("../models/expense");
 const User = require("../models/user");
 const sequelize = require("../config/database");
+const fs = require("fs");
+const DownloadedFile = require("../models/downloadedFile");
 
-// ================== LEADERBOARD (OPTIMIZED) ==================
+// ✅ S3 SERVICE
+const S3service = require("../services/S3service");
+
+// ✅ AI SERVICE
+const { getCategoryFromAI } = require("../services/aiService");
+
+
+// ================== LEADERBOARD ==================
 exports.getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.findAll({
@@ -15,12 +24,7 @@ exports.getLeaderboard = async (req, res) => {
           "totalExpense"
         ]
       ],
-      include: [
-        {
-          model: Expense,
-          attributes: []
-        }
-      ],
+      include: [{ model: Expense, attributes: [] }],
       group: ["User.id"],
       order: [[Sequelize.literal("totalExpense"), "DESC"]]
     });
@@ -32,7 +36,7 @@ exports.getLeaderboard = async (req, res) => {
     res.status(500).json({ message: "Error fetching leaderboard" });
   }
 };
-const { getCategoryFromAI } = require("../services/aiService");
+
 
 // ================== ADD EXPENSE ==================
 exports.addExpense = async (req, res) => {
@@ -48,11 +52,10 @@ exports.addExpense = async (req, res) => {
       description,
       note,
       category: aiCategory,
-      UserId: req.userId
+      UserId: req.user.id
     }, { transaction: t });
 
     await t.commit();
-
     res.status(201).json(expense);
 
   } catch (err) {
@@ -62,16 +65,17 @@ exports.addExpense = async (req, res) => {
   }
 };
 
-// ================== GET EXPENSES (PAGINATION) ==================
+
+// ================== GET EXPENSES ==================
 exports.getExpenses = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10; // 🔥 dynamic
+    const limit = parseInt(req.query.limit) || 10;
 
     const offset = (page - 1) * limit;
 
     const { count, rows } = await Expense.findAndCountAll({
-      where: { UserId: req.userId },
+      where: { UserId: req.user.id },
       limit,
       offset,
       order: [["createdAt", "DESC"]]
@@ -91,6 +95,7 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
+
 // ================== DELETE EXPENSE ==================
 exports.deleteExpense = async (req, res) => {
   const t = await sequelize.transaction();
@@ -99,7 +104,7 @@ exports.deleteExpense = async (req, res) => {
     const id = req.params.id;
 
     const expense = await Expense.findOne({
-      where: { id, UserId: req.userId },
+      where: { id, UserId: req.user.id },
       transaction: t
     });
 
@@ -111,12 +116,66 @@ exports.deleteExpense = async (req, res) => {
     await expense.destroy({ transaction: t });
 
     await t.commit();
-
     res.status(200).json({ message: "Deleted successfully" });
 
   } catch (err) {
     await t.rollback();
     console.log("DELETE ERROR:", err);
     res.status(500).json({ message: "Error deleting expense" });
+  }
+};
+
+
+// ================== DOWNLOAD EXPENSES ==================
+exports.downloadExpenses = async (req, res) => {
+  try {
+    // 🔒 Premium check
+    if (!req.user.isPremium) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // 📦 Fetch expenses
+    const expenses = await Expense.findAll({
+      where: { UserId: req.user.id }
+    });
+
+    const stringifiedExpenses = JSON.stringify(expenses);
+
+    const filename = `Expenses_${req.user.id}_${new Date().toISOString()}.txt`;
+
+    // ☁️ Upload to S3
+    const fileURL = await S3service.uploadToS3(
+      stringifiedExpenses,
+      filename
+    );
+
+    // ✅ SAVE FILE HISTORY (BONUS)
+    await DownloadedFile.create({
+      fileUrl: fileURL,
+      UserId: req.user.id
+    });
+
+    res.status(200).json({ fileURL, success: true });
+
+  } catch (err) {
+    console.log("DOWNLOAD ERROR:", err);
+    res.status(500).json({ message: "Failed to download" });
+  }
+};
+
+
+// ================== GET DOWNLOAD HISTORY ==================
+exports.getDownloadHistory = async (req, res) => {
+  try {
+    const files = await DownloadedFile.findAll({
+      where: { UserId: req.user.id },
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.json(files);
+
+  } catch (err) {
+    console.log("HISTORY ERROR:", err);
+    res.status(500).json({ message: "Error fetching history" });
   }
 };
