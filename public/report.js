@@ -1,3 +1,6 @@
+// ================= BASE URL =================
+const BASE_URL = "/api";
+
 // ================= TOAST =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -37,19 +40,21 @@ if (!user.isPremium) {
 // ================= LOAD =================
 async function loadExpenses() {
   try {
-    const res = await fetch("http://localhost:3000/get-expenses", {
-      headers: { Authorization: token }
+    const res = await fetch(`${BASE_URL}/get-expenses`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
+
     const data = await res.json();
     allExpenses = Array.isArray(data) ? data : (data.expenses || []);
     display();
+
   } catch (err) {
     console.error(err);
     toast("Failed to load expenses", "error");
   }
 }
 
-// ================= DISPLAY WITH FILTER =================
+// ================= DISPLAY =================
 function display() {
   const now = new Date();
 
@@ -63,9 +68,10 @@ function display() {
       return (now - date) / (1000 * 60 * 60 * 24) <= 7;
     }
     if (currentFilter === "monthly") {
-      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      return date.getMonth() === now.getMonth() &&
+             date.getFullYear() === now.getFullYear();
     }
-    return true; // all
+    return true;
   });
 
   const total = filtered.reduce((s, e) => s + Number(e.amount), 0);
@@ -74,7 +80,8 @@ function display() {
   document.getElementById("rStatTotal").textContent  = `₹${total.toLocaleString()}`;
   document.getElementById("rStatCount").textContent  = filtered.length;
   document.getElementById("rStatAvg").textContent    = `₹${avg.toFixed(0)}`;
-  document.getElementById("countBadge").textContent  = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
+  document.getElementById("countBadge").textContent  =
+    `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
 
   const list = document.getElementById("reportList");
   list.innerHTML = "";
@@ -91,10 +98,12 @@ function display() {
   filtered.forEach(exp => {
     const div = document.createElement("div");
     div.className = "report-item";
+
     const icon = catIcons[exp.category] || '💰';
     const date = new Date(exp.createdAt).toLocaleDateString('en-IN', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
+
     div.innerHTML = `
       <div class="rep-left">
         <div class="cat-icon">${icon}</div>
@@ -105,11 +114,12 @@ function display() {
       </div>
       <div class="rep-amount">₹${Number(exp.amount).toLocaleString()}</div>
     `;
+
     list.appendChild(div);
   });
 }
 
-// ================= FILTER PILLS =================
+// ================= FILTER =================
 document.querySelectorAll(".pill").forEach(pill => {
   pill.addEventListener("click", () => {
     document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
@@ -122,19 +132,23 @@ document.querySelectorAll(".pill").forEach(pill => {
 // ================= DOWNLOAD =================
 document.getElementById("downloadBtn").addEventListener("click", async () => {
   try {
-    const res = await fetch("http://localhost:3000/get-expenses", {
-      headers: { Authorization: token }
+    const res = await fetch(`${BASE_URL}/get-expenses`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
+
     const data = await res.json();
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url  = window.URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
+
+    const a = document.createElement("a");
+    a.href = url;
     a.download = `expenses_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
+
     window.URL.revokeObjectURL(url);
     toast("Report downloaded!", "success");
+
   } catch (err) {
     console.error(err);
     toast("Download failed", "error");

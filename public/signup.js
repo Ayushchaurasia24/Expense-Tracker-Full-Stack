@@ -1,3 +1,6 @@
+// ================= BASE URL =================
+const BASE_URL = "/api";
+
 // ================= TOAST HELPER =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -17,8 +20,8 @@ signupForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const userDetails = {
-    name:     document.getElementById("name").value.trim(),
-    email:    document.getElementById("email").value.trim(),
+    name: document.getElementById("name").value.trim(),
+    email: document.getElementById("email").value.trim(),
     password: document.getElementById("password").value
   };
 
@@ -26,7 +29,7 @@ signupForm.addEventListener("submit", async function (e) {
   submitBtn.disabled = true;
 
   try {
-    const res = await fetch("http://localhost:3000/signup", {
+    const res = await fetch(`${BASE_URL}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userDetails)
@@ -36,17 +39,20 @@ signupForm.addEventListener("submit", async function (e) {
 
     if (res.status === 201) {
       toast("Account created! Redirecting…", "success");
-      setTimeout(() => window.location.href = "login.html", 1400);
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1400);
+
     } else {
       toast(data.message || "Signup failed", "error");
-      submitBtn.classList.remove("btn-loading");
-      submitBtn.disabled = false;
     }
 
   } catch (err) {
     console.error(err);
     toast("Network error. Please try again.", "error");
-    submitBtn.classList.remove("btn-loading");
-    submitBtn.disabled = false;
   }
+
+  submitBtn.classList.remove("btn-loading");
+  submitBtn.disabled = false;
 });

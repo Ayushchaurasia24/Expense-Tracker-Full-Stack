@@ -1,3 +1,6 @@
+// ================= BASE URL =================
+const BASE_URL = "/api";
+
 // ================= TOAST =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -23,7 +26,7 @@ loginForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const userDetails = {
-    email:    document.getElementById("loginEmail").value.trim(),
+    email: document.getElementById("loginEmail").value.trim(),
     password: document.getElementById("loginPassword").value
   };
 
@@ -31,7 +34,7 @@ loginForm.addEventListener("submit", async function (e) {
   loginBtn.disabled = true;
 
   try {
-    const res = await fetch("http://localhost:3000/login", {
+    const res = await fetch(`${BASE_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userDetails)
@@ -42,19 +45,22 @@ loginForm.addEventListener("submit", async function (e) {
     if (res.status === 200) {
       localStorage.setItem("token", data.token);
       toast("Login successful! Redirecting…", "success");
-      setTimeout(() => window.location.href = "expense.html", 1200);
+
+      setTimeout(() => {
+        window.location.href = "expense.html";
+      }, 1200);
+
     } else {
       toast(data.message || "Login failed", "error");
-      loginBtn.classList.remove("btn-loading");
-      loginBtn.disabled = false;
     }
 
   } catch (err) {
     console.error(err);
     toast("Network error. Please try again.", "error");
-    loginBtn.classList.remove("btn-loading");
-    loginBtn.disabled = false;
   }
+
+  loginBtn.classList.remove("btn-loading");
+  loginBtn.disabled = false;
 });
 
 // ================= FORGOT PASSWORD =================
@@ -71,18 +77,18 @@ forgotForm.addEventListener("submit", async (e) => {
 
   try {
     const res = await axios.post(
-      "http://localhost:3000/password/forgotpassword",
-      { email }
+      `${BASE_URL}/password/forgotpassword`,
+      { email },
+      { headers: { "Content-Type": "application/json" } }
     );
 
     toast(res.data.message || "Reset link sent!", "success");
-    forgotBtn.classList.remove("btn-loading");
-    forgotBtn.disabled = false;
 
   } catch (err) {
     console.error(err);
     toast("Error sending reset email.", "error");
-    forgotBtn.classList.remove("btn-loading");
-    forgotBtn.disabled = false;
   }
+
+  forgotBtn.classList.remove("btn-loading");
+  forgotBtn.disabled = false;
 });

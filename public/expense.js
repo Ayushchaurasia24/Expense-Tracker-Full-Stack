@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000"; // change later to EC2
+const BASE_URL = "/api"; // change later to EC2
 
 // ================= TOAST =================
 function toast(msg, type = 'success') {
