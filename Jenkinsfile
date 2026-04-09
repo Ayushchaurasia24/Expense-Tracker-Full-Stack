@@ -4,19 +4,23 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/Ayushchaurasia24/Expense-Tracker-Full-Stack.git'
+                git branch: 'main', url: 'https://github.com/Ayushchaurasia24/Expense-Tracker-Full-Stack.git'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Backend Dependencies') {
             steps {
-                sh 'npm install'
+                dir('backend') {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('Run App') {
+        stage('Start Server') {
             steps {
-                sh 'pm2 restart all || pm2 start app.js'
+                dir('backend') {
+                    sh 'pm2 restart all || pm2 start npm --name "backend" -- start'
+                }
             }
         }
     }
