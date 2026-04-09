@@ -2,25 +2,19 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repo') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Ayushchaurasia24/Expense-Tracker-Full-Stack.git'
-            }
-        }
-
         stage('Install Backend Dependencies') {
             steps {
-                dir('backend') {
-                    sh 'npm install'
-                }
+                sh 'cd backend && npm install'
             }
         }
 
         stage('Start Server') {
             steps {
-                dir('backend') {
-                    sh 'pm2 restart all || pm2 start npm --name "backend" -- start'
-                }
+                sh '''
+                cd backend
+                pm2 delete backend || true
+                pm2 start npm --name "backend" -- start
+                '''
             }
         }
     }
