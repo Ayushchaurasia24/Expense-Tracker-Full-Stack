@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ================= TOTAL =================
 async function loadTotal() {
   try {
-    const res = await fetch(`/api/total-expense`, {
+    const res = await fetch(`${BASE_URL}/total-expense`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     });
 
