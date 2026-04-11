@@ -13,24 +13,32 @@ const { getCategoryFromAI } = require("../services/aiService");
 // ================== LEADERBOARD ==================
 exports.getLeaderboard = async (req, res) => {
   try {
+    console.log("👉 Leaderboard API called");
+
     const leaderboard = await User.findAll({
       attributes: [
         "id",
         "name",
         [
-          Sequelize.fn("SUM", Sequelize.col("Expenses.amount")),
+          Sequelize.fn("SUM", Sequelize.col("Expense.amount")),
           "totalExpense"
         ]
       ],
-      include: [{ model: Expense, attributes: [] }],
-      group: ["User.id"],
-      order: [[Sequelize.literal("totalExpense"), "DESC"]]
+      include: [{
+        model: Expense,
+        attributes: []
+      }],
+      group: ["User.id", "User.name"],
+      order: [[Sequelize.literal("totalExpense"), "DESC"]],
+      raw: true
     });
+
+    console.log("📊 Leaderboard:", leaderboard);
 
     res.json(leaderboard);
 
   } catch (err) {
-    console.log("LEADERBOARD ERROR:", err);
+    console.log("❌ LEADERBOARD ERROR:", err);
     res.status(500).json({ message: "Error fetching leaderboard" });
   }
 };

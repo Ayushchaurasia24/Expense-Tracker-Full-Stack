@@ -193,6 +193,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           <span>₹${Number(user.totalExpense || 0).toLocaleString()}</span>
         `;
 
+        // ✅ ADD THIS HERE
+        if (user.id === currentUser.id) {
+          li.style.fontWeight = "bold";
+          li.style.color = "gold";
+          li.style.background = "#fff3cd";
+          li.style.borderRadius = "8px";
+          li.style.padding = "6px";
+        }
+
         lbList.appendChild(li);
       });
 
