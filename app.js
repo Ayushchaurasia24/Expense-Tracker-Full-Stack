@@ -33,7 +33,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 
 // ================= ASSOCIATIONS =================
-User.hasMany(Expense);
+User.hasMany(Expense, { as: "expenses" });
 Expense.belongsTo(User);
 
 User.hasMany(Order);

@@ -20,12 +20,13 @@ exports.getLeaderboard = async (req, res) => {
         "id",
         "name",
         [
-          Sequelize.fn("SUM", Sequelize.col("Expense.amount")),
+          Sequelize.fn("SUM", Sequelize.col("expenses.amount")),
           "totalExpense"
         ]
       ],
       include: [{
         model: Expense,
+        as: "expenses",
         attributes: []
       }],
       group: ["User.id", "User.name"],
