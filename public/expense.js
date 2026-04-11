@@ -160,6 +160,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const currentUser = getUser();
 
+  // ✅ LOAD TOTAL FOR ALL USERS
+  loadTotal();   // 👈 MOVE HERE
+
   if (currentUser && currentUser.isPremium) {
 
     document.getElementById("premiumBanner").classList.add("show");
@@ -193,7 +196,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           <span>₹${Number(user.totalExpense || 0).toLocaleString()}</span>
         `;
 
-        // ✅ ADD THIS HERE
         if (user.id === currentUser.id) {
           li.style.fontWeight = "bold";
           li.style.color = "gold";
@@ -210,6 +212,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+// ================= TOTAL =================
+async function loadTotal() {
+  try {
+    const res = await fetch(`/api/total-expense`, {
+      headers: { Authorization: `Bearer ${getToken()}` }
+    });
+
+    const data = await res.json();
+
+    document.getElementById('statTotal').textContent =
+      `₹${Number(data.total).toLocaleString()}`;
+
+  } catch (err) {
+    console.error(err);
+  }
+}
 // ================= BUY PREMIUM =================
 document.getElementById("buyPremiumBtn").addEventListener("click", async () => {
   try {

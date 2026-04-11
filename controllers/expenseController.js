@@ -190,3 +190,16 @@ exports.getDownloadHistory = async (req, res) => {
     res.status(500).json({ message: "Error fetching history" });
   }
 };
+
+exports.getTotalExpense = async (req, res) => {
+  try {
+    const total = await Expense.sum("amount", {
+      where: { UserId: req.user.id }
+    });
+
+    res.json({ total: total || 0 });
+  } catch (err) {
+    console.log("TOTAL ERROR:", err);
+    res.status(500).json({ message: "Error fetching total" });
+  }
+};
