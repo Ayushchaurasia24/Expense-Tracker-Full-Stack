@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const ForgotPassword = require("../models/forgotPassword");
 const User = require("../models/user");
 const sequelize = require("../config/database");
+const BASE_URL = process.env.BASE_URL;
 
 
 // ================= FORGOT PASSWORD =================
@@ -42,7 +43,7 @@ exports.forgotPassword = async (req, res) => {
         <h2>Expense Tracker</h2>
         <p>You requested a password reset.</p>
         <p>Click below:</p>
-        <a href="http://localhost:3000/password/resetpassword/${id}" 
+        <a href="${BASE_URL}/password/resetpassword/${id}"> 
             style="padding:10px 20px;background:#007bff;color:white;text-decoration:none;">
             Reset Password
         </a>
