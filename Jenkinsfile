@@ -2,18 +2,18 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Backend Dependencies') {
+        stage('Install Dependencies') {
             steps {
-                sh 'cd backend && npm install'
+                sh 'npm install'
             }
         }
 
         stage('Start Server') {
             steps {
                 sh '''
-                cd backend
                 pm2 delete backend || true
-                pm2 start npm --name "backend" -- start
+                pm2 start app.js --name backend
+                pm2 save
                 '''
             }
         }
