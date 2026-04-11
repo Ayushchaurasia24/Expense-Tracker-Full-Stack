@@ -2,13 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Dependencies') {
+
+        stage('Checkout Code') {
             steps {
-                sh 'npm install'
+                git branch: 'main',
+                url: 'https://github.com/Ayushchaurasia24/Expense-Tracker-Full-Stack.git'
             }
         }
 
-        stage('Start Server') {
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install --no-audit --no-fund'
+            }
+        }
+
+        stage('Restart Server') {
             steps {
                 sh '''
                 pm2 delete backend || true
