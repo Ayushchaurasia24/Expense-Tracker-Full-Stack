@@ -1,4 +1,13 @@
+// ================= BASE URL =================
 const BASE_URL = "/api"; // change later to EC2
+
+// ❌ REMOVE THIS (IMPORTANT)
+// const token = localStorage.getItem("token");
+
+// ================= HELPER =================
+function getToken() {
+  return localStorage.getItem("token");
+}
 
 // ================= TOAST =================
 function toast(msg, type = 'success') {
@@ -20,11 +29,11 @@ const catIcons = {
 };
 
 // ================= AUTH =================
-const token = localStorage.getItem("token");
-if (!token) window.location.href = "login.html";
-
-const decodeToken = (t) => JSON.parse(atob(t.split(".")[1]));
-const user = decodeToken(token);
+function getUser() {
+  const token = getToken();
+  if (!token) return null;
+  return JSON.parse(atob(token.split(".")[1]));
+}
 
 // ================= STATE =================
 let currentPage = 1;
@@ -49,7 +58,7 @@ function updateStats(expenses) {
 async function loadExpenses(page = 1) {
   try {
     const res = await fetch(`${BASE_URL}/get-expenses?page=${page}&limit=${limit}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${getToken()}` }
     });
 
     const data = await res.json();
@@ -111,7 +120,6 @@ function renderExpenses(expenses) {
       </div>
     `;
 
-    // DELETE BUTTON
     const delBtn = document.createElement("button");
     delBtn.className = "btn btn-danger btn-sm";
     delBtn.textContent = "Delete";
@@ -122,7 +130,7 @@ function renderExpenses(expenses) {
 
       await fetch(`${BASE_URL}/delete-expense/${exp.id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       });
 
       toast("Expense deleted", "info");
@@ -137,13 +145,11 @@ function renderExpenses(expenses) {
 // ================= DOM READY =================
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // LOGOUT
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "login.html";
   });
 
-  // LIMIT SELECT
   const limitSelect = document.getElementById("limitSelect");
   limitSelect.value = limit;
   limitSelect.addEventListener("change", (e) => {
@@ -152,38 +158,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadExpenses(1);
   });
 
-  // ================= PREMIUM UI =================
-  if (user.isPremium) {
+  const currentUser = getUser();
+
+  if (currentUser && currentUser.isPremium) {
+
     document.getElementById("premiumBanner").classList.add("show");
 
     const premBtn = document.getElementById("buyPremiumBtn");
     premBtn.textContent = "🌟 Premium";
     premBtn.disabled = true;
 
-    // SHOW LEADERBOARD
     const lbSection = document.getElementById("leaderboardSection");
     lbSection.classList.add("show");
 
     try {
       const res = await fetch(`${BASE_URL}/leaderboard`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       });
 
       const data = await res.json();
       const lbList = document.getElementById("leaderboardList");
       lbList.innerHTML = "";
 
-      data.forEach((u, i) => {
-        const div = document.createElement("div");
-        div.className = "lb-item";
+      if (!Array.isArray(data)) {
+        console.error("Leaderboard error:", data);
+        return;
+      }
 
-        div.innerHTML = `
-          <span class="lb-rank">${i + 1}</span>
-          <span class="lb-name">${u.name}</span>
-          <span class="lb-amt">₹${Number(u.totalExpense).toLocaleString()}</span>
+      data.forEach((user, index) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <span>#${index + 1} ${user.name}</span>
+          <span>₹${Number(user.totalExpense || 0).toLocaleString()}</span>
         `;
 
-        lbList.appendChild(div);
+        lbList.appendChild(li);
       });
 
     } catch (e) {
@@ -191,45 +201,58 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // ================= BUY PREMIUM =================
-  document.getElementById("buyPremiumBtn").addEventListener("click", async () => {
-    if (user.isPremium) return;
+// ================= BUY PREMIUM =================
+document.getElementById("buyPremiumBtn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("/api/purchase/create-order", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    });
 
-    try {
-      const res = await fetch(`${BASE_URL}/pay`, {
+    const data = await res.json();
+
+    const cashfree = Cashfree({
+      mode: "sandbox"
+    });
+
+    cashfree.checkout({
+      paymentSessionId: data.paymentSessionId,
+      redirectTarget: "_modal"
+    });
+
+    setTimeout(async () => {
+      const verifyRes = await fetch("/api/purchase/verify", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ orderId: data.orderId })
       });
 
-      const data = await res.json();
+      const verifyData = await verifyRes.json();
 
-      const statusRes = await fetch(
-        `${BASE_URL}/payment-status/${data.orderId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const statusData = await statusRes.json();
-
-      if (statusData.status === "SUCCESSFUL") {
-        localStorage.setItem("token", statusData.token);
-        toast("Upgraded to Premium! 🎉", "success");
-        setTimeout(() => location.reload(), 1200);
+      if (verifyData.success) {
+        alert("Premium Activated 🎉");
+        location.reload();
       }
 
-    } catch (err) {
-      console.error(err);
-      toast("Payment error", "error");
-    }
-  });
+    }, 5000);
 
-  // ================= DOWNLOAD FEATURE =================
+  } catch (err) {
+    console.error(err);
+  }
+});
+
   const downloadBtn = document.getElementById("downloadBtn");
 
   if (downloadBtn) {
     downloadBtn.addEventListener("click", async () => {
       try {
         const res = await fetch(`${BASE_URL}/download`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${getToken()}` }
         });
 
         if (res.status === 401) {
@@ -257,7 +280,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // LOAD EXPENSES
   loadExpenses();
 });
 
@@ -275,28 +297,34 @@ form.addEventListener("submit", async (e) => {
     note: document.getElementById("note").value.trim()
   };
 
-  addBtn.classList.add("btn-loading");
+  addBtn.innerText = "Adding...";
   addBtn.disabled = true;
 
-  const res = await fetch(`${BASE_URL}/add-expense`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(expense)
-  });
+  try {
+    const res = await fetch(`${BASE_URL}/add-expense`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(expense)
+    });
 
-  if (res.status === 201) {
-    toast("Expense added!", "success");
-    form.reset();
-    loadExpenses(currentPage);
-  } else {
-    toast("Failed to add expense", "error");
+    if (res.status === 201) {
+      toast("Expense added!", "success");
+      form.reset();
+      loadExpenses(currentPage);
+    } else {
+      toast("Failed to add expense", "error");
+    }
+
+  } catch (err) {
+    console.error(err);
+    toast("Error adding expense", "error");
+  } finally {
+    addBtn.innerText = "Add Expense";
+    addBtn.disabled = false;
   }
-
-  addBtn.classList.remove("btn-loading");
-  addBtn.disabled = false;
 });
 
 // ================= PAGINATION =================

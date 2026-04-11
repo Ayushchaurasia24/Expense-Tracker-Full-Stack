@@ -1,11 +1,9 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/user"); // ✅ ADD THIS
+const User = require("../models/user");
 
 exports.authenticate = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
-
-    console.log("TOKEN RECEIVED:", authHeader);
 
     if (!authHeader) {
       return res.status(401).json({ message: "Token missing" });
@@ -19,24 +17,27 @@ exports.authenticate = async (req, res, next) => {
       token = authHeader;
     }
 
-    console.log("EXTRACTED TOKEN:", token);
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ FETCH USER FROM DB
+    // ✅ find user
     const user = await User.findByPk(decoded.userId);
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    // ✅ ATTACH FULL USER OBJECT
-    req.user = user;
+    // ✅ SINGLE SOURCE OF TRUTH
+    req.user = {
+      id: user.id,
+      isPremium: user.isPremium,
+      name: user.name,
+      email: user.email
+    };
 
     next();
 
   } catch (err) {
     console.log("AUTH ERROR:", err.message);
-    res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };

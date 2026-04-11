@@ -54,22 +54,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ================= ROUTES =================
-app.use(purchaseRoutes);
-app.use(userRoutes);
-app.use(expenseRoutes);
-app.use(passwordRoutes);
+app.use("/api/purchase", purchaseRoutes);
+app.use("/api", userRoutes);
+app.use("/api", expenseRoutes);
+app.use("/api", passwordRoutes);
 
 
 // ================= START SERVER =================
+const PORT = process.env.PORT || 3000;
+console.log("DB config:", process.env.DB_NAME);
 sequelize.sync()
   .then(() => {
-    app.listen(process.env.PORT || 3000, () => {
-      
-      console.log("CI/CD test");
+    console.log("🟢 DB Connected");
 
-      console.log(`Server running on port ${process.env.PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log("🚀 Server running on port " + PORT);
     });
   })
   .catch(err => {
-    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
+    console.error("🔴 DB ERROR:", err);
   });

@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
-
-const controller = require("../controllers/purchaseController");
+const purchaseController = require("../controllers/purchaseController");
 const auth = require("../middleware/auth");
 
-router.post("/pay", auth.authenticate, controller.pay);
-router.get("/payment-status/:orderId", auth.authenticate, controller.getPaymentStatus);
+// CREATE ORDER
+router.post("/create-order", auth.authenticate, purchaseController.createOrder);
+
+// VERIFY PAYMENT
+router.post("/verify", auth.authenticate, purchaseController.verifyPayment);
 
 module.exports = router;

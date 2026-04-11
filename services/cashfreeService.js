@@ -1,33 +1,29 @@
 const { Cashfree, CFEnvironment } = require("cashfree-pg");
 
-if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
-  throw new Error("Cashfree keys missing in .env");
-}
+const cashfree = new Cashfree(
+  CFEnvironment.SANDBOX,
+  process.env.CASHFREE_APP_ID,
+  process.env.CASHFREE_SECRET_KEY
+);
 
-const cashfree = new Cashfree({
-  env: CFEnvironment.SANDBOX,
-  appId: process.env.CASHFREE_APP_ID,
-  secretKey: process.env.CASHFREE_SECRET_KEY
-});
-
-exports.createOrder = async (orderId, amount, currency, customerId, phone) => {
+exports.createOrder = async (orderId, amount) => {
   try {
     const request = {
-      order_amount: amount,
-      order_currency: currency,
       order_id: orderId,
+      order_amount: amount,
+      order_currency: "INR",
       customer_details: {
-        customer_id: customerId.toString(),
-        customer_phone: phone
+        customer_id: "cust_" + Date.now(),
+        customer_email: "test@test.com",
+        customer_phone: "9999999999"
       }
     };
 
-    const response = await cashfree.PGCreateOrder("2023-08-01", request);
-
-    return response.data.payment_session_id;
+    const response = await cashfree.PGCreateOrder(request);
+    return response.data;
 
   } catch (err) {
-    console.log("CASHFREE ERROR:", err.response?.data || err);
+    console.error("Cashfree error:", err.response?.data || err.message);
     throw err;
   }
 };

@@ -1,6 +1,14 @@
 // ================= BASE URL =================
 const BASE_URL = "/api";
 
+// ❌ REMOVE THIS
+// const token = localStorage.getItem("token");
+
+// ✅ ADD THIS
+function getToken() {
+  return localStorage.getItem("token");
+}
+
 // ================= TOAST =================
 function toast(msg, type = 'success') {
   const container = document.getElementById('toast');
@@ -17,7 +25,7 @@ const catIcons = {
 };
 
 // ================= AUTH =================
-const token = localStorage.getItem("token");
+const token = getToken();
 if (!token) window.location.href = "login.html";
 
 function parseJwt(t) { return JSON.parse(atob(t.split('.')[1])); }
@@ -41,7 +49,7 @@ if (!user.isPremium) {
 async function loadExpenses() {
   try {
     const res = await fetch(`${BASE_URL}/get-expenses`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${getToken()}` } // ✅ FIX
     });
 
     const data = await res.json();
@@ -133,7 +141,7 @@ document.querySelectorAll(".pill").forEach(pill => {
 document.getElementById("downloadBtn").addEventListener("click", async () => {
   try {
     const res = await fetch(`${BASE_URL}/get-expenses`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${getToken()}` } // ✅ FIX
     });
 
     const data = await res.json();

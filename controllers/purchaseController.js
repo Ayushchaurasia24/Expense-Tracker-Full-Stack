@@ -1,60 +1,78 @@
-const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+const CashfreeService = require("../services/cashfreeService");
 const Order = require("../models/order");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
-// Create Order
-exports.pay = async (req, res) => {
+// ================= CREATE ORDER =================
+exports.createOrder = async (req, res) => {
   try {
-    const orderId = "ORDER_" + Date.now();
+    const amount = 500;
+
+    const orderId = "order_" + uuidv4();
 
     await Order.create({
       orderId,
       status: "PENDING",
-      UserId: req.userId
+      UserId: req.user.id   // ✅ IMPORTANT FIX
     });
 
-    res.json({ orderId });
+    const cashfreeOrder = await CashfreeService.createOrder(orderId, amount);
+
+    res.status(200).json({
+      orderId,
+      paymentSessionId: cashfreeOrder.payment_session_id
+    });
 
   } catch (err) {
-    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
-    res.status(500).json({ message: "Payment error" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to create order" });
   }
 };
 
-// Check Status
-exports.getPaymentStatus = async (req, res) => {
+// ================= VERIFY PAYMENT =================
+exports.verifyPayment = async (req, res) => {
+  console.log("🔥 VERIFY API HIT");
+
   try {
-    const orderId = req.params.orderId;
+    const { orderId } = req.body;
 
     const order = await Order.findOne({ where: { orderId } });
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ error: "Order not found" });
     }
 
-    order.status = "SUCCESSFUL";
+    // update order
+    order.status = "SUCCESS";
     await order.save();
 
-    const user = await User.findByPk(req.userId);
+    // get user
+    const user = await User.findByPk(order.UserId || req.user.id);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
+    // upgrade user
     user.isPremium = true;
     await user.save();
 
-    // 🔥 NEW TOKEN WITH UPDATED PREMIUM STATUS
+    // ✅ GENERATE SAME STRUCTURE TOKEN AS LOGIN
     const token = jwt.sign(
-      { userId: user.id, isPremium: true },
+      {
+        userId: user.id,
+        isPremium: user.isPremium
+      },
       process.env.JWT_SECRET
     );
 
-    res.json({ status: "SUCCESSFUL", token });
+    res.status(200).json({
+      success: true,
+    });
 
   } catch (err) {
-    fs.appendFileSync("error.log", `${new Date()} - ${err.message}\n`);
-    res.status(500).json({ message: "Status error" });
+    console.error("❌ VERIFY ERROR:", err);
+    res.status(500).json({ error: "Verification failed" });
   }
 };

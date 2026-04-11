@@ -5,10 +5,8 @@ const sequelize = require("../config/database");
 const fs = require("fs");
 const DownloadedFile = require("../models/downloadedFile");
 
-// ✅ S3 SERVICE
+// ✅ SERVICES
 const S3service = require("../services/S3service");
-
-// ✅ AI SERVICE
 const { getCategoryFromAI } = require("../services/aiService");
 
 
@@ -20,7 +18,7 @@ exports.getLeaderboard = async (req, res) => {
         "id",
         "name",
         [
-          Sequelize.fn("SUM", Sequelize.col("expenses.amount")),
+          Sequelize.fn("SUM", Sequelize.col("Expenses.amount")),
           "totalExpense"
         ]
       ],
@@ -45,18 +43,26 @@ exports.addExpense = async (req, res) => {
   try {
     const { amount, description, note } = req.body;
 
-    const aiCategory = await getCategoryFromAI(description);
+    // 🔥 AI RESULT (OBJECT)
+    const aiResult = await getCategoryFromAI(description);
+
+    console.log("🤖 AI RESULT:", aiResult);
 
     const expense = await Expense.create({
       amount,
       description,
       note,
-      category: aiCategory,
+      category: aiResult.category,          // ✅ FIXED
+      aiConfidence: aiResult.confidence,    // ✅ OPTIONAL (add column if needed)
       UserId: req.user.id
     }, { transaction: t });
 
     await t.commit();
-    res.status(201).json(expense);
+
+    res.status(201).json({
+      expense,
+      ai: aiResult // optional (useful for frontend/debug)
+    });
 
   } catch (err) {
     await t.rollback();
@@ -129,12 +135,10 @@ exports.deleteExpense = async (req, res) => {
 // ================== DOWNLOAD EXPENSES ==================
 exports.downloadExpenses = async (req, res) => {
   try {
-    // 🔒 Premium check
     if (!req.user.isPremium) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // 📦 Fetch expenses
     const expenses = await Expense.findAll({
       where: { UserId: req.user.id }
     });
@@ -143,13 +147,11 @@ exports.downloadExpenses = async (req, res) => {
 
     const filename = `Expenses_${req.user.id}_${new Date().toISOString()}.txt`;
 
-    // ☁️ Upload to S3
     const fileURL = await S3service.uploadToS3(
       stringifiedExpenses,
       filename
     );
 
-    // ✅ SAVE FILE HISTORY (BONUS)
     await DownloadedFile.create({
       fileUrl: fileURL,
       UserId: req.user.id

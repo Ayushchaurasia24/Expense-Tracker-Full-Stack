@@ -7,8 +7,15 @@ const Order = sequelize.define("Order", {
     autoIncrement: true,
     primaryKey: true
   },
-  orderId: Sequelize.STRING,
-  status: Sequelize.STRING
+  orderId: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  status: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: "PENDING"
+  }
 });
 
 module.exports = Order;

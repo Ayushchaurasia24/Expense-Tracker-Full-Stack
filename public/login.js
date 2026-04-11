@@ -12,12 +12,6 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3200);
 }
 
-// ================= TOGGLE FORGOT PANEL =================
-function toggleForgot() {
-  const panel = document.getElementById('forgotPanel');
-  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-}
-
 // ================= LOGIN =================
 const loginForm = document.getElementById("loginForm");
 const loginBtn  = document.getElementById("loginBtn");
@@ -30,7 +24,7 @@ loginForm.addEventListener("submit", async function (e) {
     password: document.getElementById("loginPassword").value
   };
 
-  loginBtn.classList.add("btn-loading");
+  loginBtn.innerText = "Logging in...";
   loginBtn.disabled = true;
 
   try {
@@ -44,11 +38,11 @@ loginForm.addEventListener("submit", async function (e) {
 
     if (res.status === 200) {
       localStorage.setItem("token", data.token);
-      toast("Login successful! Redirecting…", "success");
+      toast("Login successful!", "success");
 
       setTimeout(() => {
         window.location.href = "expense.html";
-      }, 1200);
+      }, 800);
 
     } else {
       toast(data.message || "Login failed", "error");
@@ -56,39 +50,9 @@ loginForm.addEventListener("submit", async function (e) {
 
   } catch (err) {
     console.error(err);
-    toast("Network error. Please try again.", "error");
+    toast("Network error", "error");
+  } finally {
+    loginBtn.innerText = "Login";
+    loginBtn.disabled = false;
   }
-
-  loginBtn.classList.remove("btn-loading");
-  loginBtn.disabled = false;
-});
-
-// ================= FORGOT PASSWORD =================
-const forgotForm = document.getElementById("forgotForm");
-const forgotBtn  = document.getElementById("forgotBtn");
-
-forgotForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById("forgotEmail").value.trim();
-
-  forgotBtn.classList.add("btn-loading");
-  forgotBtn.disabled = true;
-
-  try {
-    const res = await axios.post(
-      `${BASE_URL}/password/forgotpassword`,
-      { email },
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    toast(res.data.message || "Reset link sent!", "success");
-
-  } catch (err) {
-    console.error(err);
-    toast("Error sending reset email.", "error");
-  }
-
-  forgotBtn.classList.remove("btn-loading");
-  forgotBtn.disabled = false;
 });
