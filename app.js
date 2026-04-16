@@ -6,7 +6,8 @@ const path = require("path");
 const morgan = require("morgan");
 const fs = require("fs");
 
-const app = express(); // ✅ MUST COME BEFORE app.use()
+// ================= APP =================
+const app = express();
 
 // ================= LOGGING =================
 const accessLogStream = fs.createWriteStream(
@@ -53,21 +54,30 @@ app.use(express.urlencoded({ extended: true }));
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname, "public")));
 
+// ================= ROOT =================
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 // ================= ROUTES =================
 app.use("/api/purchase", purchaseRoutes);
 app.use("/api", userRoutes);
 app.use("/api", expenseRoutes);
 app.use("/api", passwordRoutes);
 
+// ================= ROOT TEST =================
+app.get("/", (req, res) => {
+  res.send("Expense Tracker Backend Running 🚀");
+});
 
 // ================= START SERVER =================
 const PORT = process.env.PORT || 3000;
+
 console.log("DB config:", process.env.DB_NAME);
+
 sequelize.sync()
   .then(() => {
     console.log("🟢 DB Connected");
-
-    app.listen(PORT, '0.0.0.0', () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log("🚀 Server running on port " + PORT);
     });
   })
