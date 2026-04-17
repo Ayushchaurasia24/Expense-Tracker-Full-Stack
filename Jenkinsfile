@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        NODE_ENV = 'production'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -23,6 +27,15 @@ pipeline {
                 pm2 save
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment Successful!'
+        }
+        failure {
+            echo '❌ Deployment Failed!'
         }
     }
 }
