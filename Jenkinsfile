@@ -26,5 +26,3 @@ pipeline {
         }
     }
 }
-
-//ci/cd test
