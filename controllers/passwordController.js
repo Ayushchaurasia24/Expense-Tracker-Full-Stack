@@ -43,7 +43,7 @@ exports.forgotPassword = async (req, res) => {
         <h2>Expense Tracker</h2>
         <p>You requested a password reset.</p>
         <p>Click below:</p>
-        <a href="${BASE_URL}/password/resetpassword/${id}"> 
+        <a href="${BASE_URL}/api/password/resetpassword/${id}"> 
             style="padding:10px 20px;background:#007bff;color:white;text-decoration:none;">
             Reset Password
         </a>
@@ -77,7 +77,7 @@ exports.resetPassword = async (req, res) => {
     }
 
     res.send(`
-      <form action="/password/updatepassword/${id}" method="POST">
+      <form action="/api/password/updatepassword/${id}" method="POST">
         <input type="password" name="newPassword" placeholder="Enter new password" required />
         <button type="submit">Reset Password</button>
       </form>

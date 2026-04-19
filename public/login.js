@@ -56,3 +56,50 @@ loginForm.addEventListener("submit", async function (e) {
     loginBtn.disabled = false;
   }
 });
+
+const forgotForm = document.getElementById("forgotForm");
+const forgotBtn = document.getElementById("forgotBtn");
+
+forgotForm.addEventListener("submit", async function (e) {
+  e.preventDefault(); // ⚠️ prevents reload
+
+  const email = document.getElementById("forgotEmail").value.trim();
+
+  forgotBtn.innerText = "Sending...";
+  forgotBtn.disabled = true;
+
+  try {
+    const res = await fetch(`${BASE_URL}/password/forgotpassword`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      toast("Reset link sent to email!", "success");
+    } else {
+      toast(data.message || "Failed to send link", "error");
+    }
+
+  } catch (err) {
+    console.error(err);
+    toast("Network error", "error");
+  } finally {
+    forgotBtn.innerText = "Send Reset Link";
+    forgotBtn.disabled = false;
+  }
+});
+
+function toggleForgot() {
+  const panel = document.getElementById("forgotPanel");
+
+  if (panel.style.display === "block") {
+    panel.style.display = "none";
+  } else {
+    panel.style.display = "block";
+  }
+}
