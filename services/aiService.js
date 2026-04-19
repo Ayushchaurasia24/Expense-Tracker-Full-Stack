@@ -52,8 +52,6 @@ const KEYWORD_RULES = {
     // clothing
     "shirt", "tshirt", "jeans", "pants", "kurta",
     "saree", "dress", "shoes", "slippers",
-
-    // daily items
     "grocery", "groceries", "vegetables", "fruits",
     "milk", "bread", "eggs"
   ],
